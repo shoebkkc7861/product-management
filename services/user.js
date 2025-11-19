@@ -13,8 +13,10 @@ export async function signUp(req) {
         console.log("body:", req.body)
 
         const existing = await getUserByEmail(email, phone);
-        if (existing.length > 0) {
+        if (existing.data.length > 0) {
             return { status: false, message: "Email or Phone number already exists" };
+        }else if (!existing.status){
+            return existing
         }
 
         const hash = await bcrypt.hash(password, 10);

@@ -1,8 +1,17 @@
 import { signUp, login, removeUser, modifyUser } from "../services/user.js";
 
 export async function register(req, res) {
-  const data = await signUp(req);
-  return res.json(data);
+  try {
+    const data = await signUp(req);
+    return res.json(data);
+  } catch (error) {
+    console.log("error:", error)
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
+  }
 }
 
 export async function userLogin(req, res) {
