@@ -1,0 +1,82 @@
+import mysql from "../db/connnection.js";
+
+export async function createCategoryDB({ name, description, slug, uuid }, userId) {
+
+  try {
+    const [res] = await mysql.execute(
+      `INSERT INTO categories 
+    (name, slug, uuid, description, created_by, updated_by)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+      [name, slug, uuid, description, userId, userId]
+    );
+
+    console.log(res)
+
+    return { status: true, message: "Category created", data: [{ insertId: res.insertId, uuid }] };
+  } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") {
+      return { status: false, message: "Slug already exists", data: [] };
+    }
+    console.log("error:",error)
+    return { status: false, message: "Somthing went wrong", data: [] };
+
+  }
+
+
+
+}
+
+
+export async function updateCategoryDB({ uuid, name, description }, userId) {
+  let fields = [];
+  let values = [];
+
+  if (name) {
+    fields.push("name=?");
+    values.push(name);
+    fields.push("slug=?");
+    values.push(name.toLowerCase().trim().replace(/\s+/g, "-"));
+  }
+
+  if (description) {
+    fields.push("description=?");
+    values.push(description);
+  }
+
+  fields.push("updated_by=?");
+  values.push(userId);
+
+  values.push(uuid);
+
+  const [res] = await mysql.execute(
+    `UPDATE categories SET ${fields.join(", ")} WHERE uuid=?`,
+    values
+  );
+
+  return res;
+}
+
+
+export async function listCategoriesDB() {
+  const [rows] = await mysql.execute(`SELECT * FROM categories ORDER BY id DESC`);
+  return rows;
+}
+
+
+export async function getCategoryDB(uuid) {
+  const [rows] = await mysql.execute(`SELECT * FROM categories WHERE uuid=?`, [uuid]);
+  return rows[0];
+}
+
+export async function getCategoryBySlug(slug) {
+  const [rows] = await mysql.execute(`SELECT * FROM categories WHERE slug=?`, [slug]);
+  return rows[0];
+}
+
+export async function deleteCategoryDB(uuid) {
+  const [res] = await mysql.execute(
+    `DELETE FROM categories WHERE uuid=?`,
+    [uuid]
+  );
+  return res;
+}
