@@ -1,54 +1,63 @@
 import mysql from '../db/connnection.js';
 
 export const addUser = async (userData) => {
-    try {
-        const {
-            first_name,
-            last_name,
-            email,
-            phone,
-            password,
-            gender,
-            dob,
-            city,
-            state,
-            pincode
-        } = userData;
+  try {
+    const {
+      first_name,
+      last_name,
+      email,
+      phone,
+      password,
+      gender,
+      dob,
+      city,
+      state,
+      pincode
+    } = userData;
 
-        const [result] = await mysql.execute(
-            `
+    const [result] = await mysql.execute(
+      `
             INSERT INTO users 
             (first_name, last_name, email, phone, password, gender, dob, city, state, pincode)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
-            [
-                first_name,
-                last_name,
-                email,
-                phone,
-                password,
-                gender,
-                dob,
-                city,
-                state,
-                pincode
-            ]
-        );
+      [
+        first_name,
+        last_name,
+        email,
+        phone,
+        password,
+        gender,
+        dob,
+        city,
+        state,
+        pincode
+      ]
+    );
 
-        return { insertedId: result.insertId };
+    return { insertedId: result.insertId };
 
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 };
 
 export const getUserByEmail = async (emailOrPhone) => {
-  const [rows] = await mysql.execute(
-    `SELECT * FROM users WHERE email = ? or phone = ?`,
-    [emailOrPhone,emailOrPhone]
-  );
-  return rows;
+  try {
+    const [rows] = await mysql.execute(
+      `SELECT * FROM users WHERE email = ? or phone = ?`,
+      [emailOrPhone, emailOrPhone]
+    );
+
+    return { status: true, message: `${(rows.length > 0) ? "data found" : "data not found"}`, data: rows };
+
+  } catch (error) {
+    return { status: false, message: "Somthing went wrong", data: [] };
+
+  }
+
+  // return rows;
 };
 
 export const updateUser = async (data) => {
@@ -89,8 +98,8 @@ export const updateUser = async (data) => {
 
 
 export const deleteUser = async (email) => {
-  const [res] = await mysql.execute(
-    `DELETE FROM users WHERE email = ?`,
+    const [res] = await mysql.execute(
+    `UPDATE users SET is_active = 0 WHERE email = ?`,
     [email]
   );
   return res;
