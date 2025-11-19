@@ -22,8 +22,6 @@ export async function createCategoryDB({ name, description, slug, uuid }, userId
 
   }
 
-
-
 }
 
 
@@ -75,8 +73,9 @@ export async function getCategoryBySlug(slug) {
 
 export async function deleteCategoryDB(uuid) {
   const [res] = await mysql.execute(
-    `DELETE FROM categories WHERE uuid=?`,
+    `UPDATE categories SET is_active = 0 WHERE uuid = ?`,
     [uuid]
   );
   return res;
 }
+
