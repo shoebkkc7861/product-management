@@ -1,4 +1,4 @@
-import { signUp, login, removeUser, modifyUser } from "../services/user.js";
+import { signUp, login, removeUser, modifyUser, activateUser } from "../services/user.js";
 
 export async function register(req, res) {
   try {
@@ -19,8 +19,13 @@ export async function userLogin(req, res) {
   return res.json(data);
 }
 
-export async function deleteUser(req, res) {
+export async function deactivateUser(req, res) {
   const data = await removeUser(req);
+  return res.json(data);
+}
+
+export async function activateUserController(req, res) {
+  const data = await activateUser(req);
   return res.json(data);
 }
 

@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { addUser, getUserByEmail, updateUser, deleteUser } from '../models/user.js';
+import { addUser, getUserByEmail, updateUser, deleteUser, activateUserDB } from '../models/user.js';
 import dotenv from 'dotenv'
 import { generateToken } from '../utils/jwt.js';
 
@@ -10,7 +10,7 @@ export async function signUp(req) {
 
     try {
         let { password, email, phone } = req.body;
-        console.log("body:", req.body)
+        // console.log("body:", req.body)
 
         const existing = await getUserByEmail(email, phone);
         if (existing.data.length > 0) {
@@ -50,7 +50,17 @@ export async function login(req) {
     try {
         const { emailOrPhone, password } = req.body;
 
-        const [user] = await getUserByEmail(emailOrPhone);
+        const lookup = await getUserByEmail(emailOrPhone);
+        let user;
+        if (lookup && Array.isArray(lookup.data)) {
+            user = lookup.data[0];
+        } else if (Array.isArray(lookup)) {
+            user = lookup[0];
+        } else if (lookup && lookup.status === false) {
+            return lookup;
+        } else {
+            user = lookup;
+        }
 
         if (!user) {
             return { status: false, message: "User not found" };
@@ -106,6 +116,30 @@ export async function removeUser(req) {
         };
     }
 
+}
+
+export async function activateUser(req) {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) return { status: false, message: "Email and password required" };
+
+        const lookup = await getUserByEmail(email);
+        let user;
+        if (lookup && Array.isArray(lookup.data)) user = lookup.data[0];
+        else if (Array.isArray(lookup)) user = lookup[0];
+        else user = lookup;
+
+        if (!user) return { status: false, message: "User not found" };
+
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return { status: false, message: "Wrong user or password" };
+
+        const res = await activateUserDB(email);
+        return { status: true, message: "User activated", data: [{ affected: res.affectedRows }] };
+    } catch (error) {
+        console.log("activateUser error:", error);
+        return { status: false, message: "Somthing went wrong", data: [] };
+    }
 }
 
 export async function modifyUser(req) {

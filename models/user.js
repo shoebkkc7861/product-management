@@ -38,8 +38,12 @@ export const addUser = async (userData) => {
     return { insertedId: result.insertId };
 
   } catch (error) {
-    console.error(error);
-    return null;
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
   }
 };
 
@@ -53,7 +57,12 @@ export const getUserByEmail = async (emailOrPhone) => {
     return { status: true, message: `${(rows.length > 0) ? "data found" : "data not found"}`, data: rows };
 
   } catch (error) {
-    return { status: false, message: "Somthing went wrong", data: [] };
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
 
   }
 
@@ -61,6 +70,7 @@ export const getUserByEmail = async (emailOrPhone) => {
 };
 
 export const updateUser = async (data) => {
+  try {
   const allowedFields = [
     "first_name",
     "last_name",
@@ -94,13 +104,47 @@ export const updateUser = async (data) => {
 
   const [res] = await mysql.execute(query, values);
   return res;
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
 };
 
 
 export const deleteUser = async (email) => {
+  try {
     const [res] = await mysql.execute(
-    `UPDATE users SET is_active = 0 WHERE email = ?`,
-    [email]
-  );
-  return res;
+      `UPDATE users SET is_active = 0 WHERE email = ?`,
+      [email]
+    );
+    return res;
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
+};
+
+export const activateUserDB = async (email) => {
+  try {
+    const [res] = await mysql.execute(
+      `UPDATE users SET is_active = 1 WHERE email = ?`,
+      [email]
+    );
+    return res;
+  } catch (error) {
+    console.log("error:", error)
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
+  }
 };
