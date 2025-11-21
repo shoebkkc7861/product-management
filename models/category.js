@@ -10,7 +10,7 @@ export async function createCategoryDB({ name, description, slug, uuid }, userId
       [name, slug, uuid, description, userId, userId]
     );
 
-    console.log(res)
+    // console.log(res)
 
     return { status: true, message: "Category created", data: [{ insertId: res.insertId, uuid }] };
   } catch (error) {
@@ -26,56 +26,101 @@ export async function createCategoryDB({ name, description, slug, uuid }, userId
 
 
 export async function updateCategoryDB({ uuid, name, description }, userId) {
-  let fields = [];
-  let values = [];
+  try {
+    let fields = [];
+    let values = [];
 
-  if (name) {
-    fields.push("name=?");
-    values.push(name);
-    fields.push("slug=?");
-    values.push(name.toLowerCase().trim().replace(/\s+/g, "-"));
+    if (name) {
+      fields.push("name=?");
+      values.push(name);
+      fields.push("slug=?");
+      values.push(name.toLowerCase().trim().replace(/\s+/g, "-"));
+    }
+
+    if (description) {
+      fields.push("description=?");
+      values.push(description);
+    }
+
+    fields.push("updated_by=?");
+    values.push(userId);
+
+    values.push(uuid);
+
+    const [res] = await mysql.execute(
+      `UPDATE categories SET ${fields.join(", ")} WHERE uuid=?`,
+      values
+    );
+
+    return res;
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
   }
-
-  if (description) {
-    fields.push("description=?");
-    values.push(description);
-  }
-
-  fields.push("updated_by=?");
-  values.push(userId);
-
-  values.push(uuid);
-
-  const [res] = await mysql.execute(
-    `UPDATE categories SET ${fields.join(", ")} WHERE uuid=?`,
-    values
-  );
-
-  return res;
 }
 
 
 export async function listCategoriesDB() {
-  const [rows] = await mysql.execute(`SELECT * FROM categories ORDER BY id DESC`);
-  return rows;
+  try {
+    const [rows] = await mysql.execute(`SELECT * FROM categories ORDER BY id DESC`);
+    return rows;
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
 }
 
 
 export async function getCategoryDB(uuid) {
-  const [rows] = await mysql.execute(`SELECT * FROM categories WHERE uuid=?`, [uuid]);
-  return rows[0];
+  try {
+    const [rows] = await mysql.execute(`SELECT * FROM categories WHERE uuid=?`, [uuid]);
+    return rows[0];
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
 }
 
 export async function getCategoryBySlug(slug) {
-  const [rows] = await mysql.execute(`SELECT * FROM categories WHERE slug=?`, [slug]);
-  return rows[0];
+  try {
+    const [rows] = await mysql.execute(`SELECT * FROM categories WHERE slug=?`, [slug]);
+    return rows[0];
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
 }
 
 export async function deleteCategoryDB(uuid) {
-  const [res] = await mysql.execute(
-    `UPDATE categories SET is_active = 0 WHERE uuid = ?`,
-    [uuid]
-  );
-  return res;
+  try {
+    const [res] = await mysql.execute(
+      `UPDATE categories SET is_active = 0 WHERE uuid = ?`,
+      [uuid]
+    );
+    return res;
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
 }
 

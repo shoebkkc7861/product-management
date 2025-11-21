@@ -3,37 +3,81 @@ import { v4 as uuidv4 } from "uuid";
 
 
 export async function createCategoryService(req) {
+  try {
+    req.body.uuid = uuidv4();
+    req.body.slug = req.body.name.toLowerCase().trim().replace(/\s+/g, "-");
 
-  req.body.uuid = uuidv4();
-  req.body.slug = req.body.name.toLowerCase().trim().replace(/\s+/g, "-");
-
-  return await createCategoryDB(req.body, req.user.id);
+    return await createCategoryDB(req.body, req.user.id);
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
 }
 
 export async function updateCategoryService(req) {
-  if (!req.body.uuid) return { status: false, message: "UUID required" };
+  try {
+    if (!req.body.uuid) return { status: false, message: "UUID required" };
 
-  await updateCategoryDB(req.body, req.user.id);
-  return { status: true, message: "Category updated" };
+    await updateCategoryDB(req.body, req.user.id);
+    return { status: true, message: "Category updated" };
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
 }
 
 export async function listCategoriesService() {
-  return await listCategoriesDB();
+  try {
+    return await listCategoriesDB();
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
 }
 
 export async function getCategoryService(uuid) {
-  const data = await getCategoryDB(uuid);
-  if (!data) return { status: false, message: "Category not found" };
-  return data;
+  try {
+    const data = await getCategoryDB(uuid);
+    if (!data) return { status: false, message: "Category not found" };
+    return data;
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
 }
 
 export async function deleteCategoryService(req) {
-  if (!req.body.uuid) return { status: false, message: "UUID required" };
+  try {
+    if (!req.body.uuid) return { status: false, message: "UUID required" };
 
-  const res = await deleteCategoryDB(req.body.uuid);
+    const res = await deleteCategoryDB(req.body.uuid);
 
-  return {
-    status: true,
-    deleted: res.affectedRows
-  };
+    return {
+      status: true,
+      deleted: res.affectedRows
+    };
+  } catch (error) {
+    console.log("error:", error)
+        return {
+            status: false,
+            message: "Somthing went wrong",
+            data: []
+        };
+  }
 }
