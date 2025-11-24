@@ -204,7 +204,7 @@ CREATE TABLE `product_report_jobs` (
 
 # 6. Postman Collection
 
-ProductManagement.postman_collection.json included.
+assignment.postman_collection.json included.
 
 
 
