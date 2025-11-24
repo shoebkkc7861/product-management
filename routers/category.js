@@ -7,7 +7,7 @@ import {updateCategorySchema,createCategorySchema,deleteCategorySchema} from "..
 const router = express.Router();
 
 router.post("/create", validate(createCategorySchema),auth, createCategory);
-router.put("/update", auth, updateCategory);
+router.put("/update", validate(updateCategorySchema),auth, updateCategory);
 router.get("/listCategories", auth, listCategories);
 router.get("/findOne/:uuid", auth, getCategory);
 router.delete("/delete",validate(deleteCategorySchema), auth, deleteCategory);
