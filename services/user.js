@@ -50,7 +50,7 @@ export async function login(req) {
     try {
         const { emailOrPhone, password } = req.body;
 
-        const lookup = await getUserByEmail(emailOrPhone);
+        const lookup = await getUserByEmail(emailOrPhone,emailOrPhone);
         let user;
         if (lookup && Array.isArray(lookup.data)) {
             user = lookup.data[0];
@@ -68,7 +68,7 @@ export async function login(req) {
 
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
-            return { status: false, message: "Wrong password" };
+            return { status: false, message: "Invalid userName or password" };
         }
 
         const token = generateToken({
@@ -104,7 +104,7 @@ export async function removeUser(req) {
 
         return {
             status: true,
-            message: "User deleted",
+            message: "User deactivateD",
             data: [{ affected: result.affectedRows }]
         };
     } catch (error) {
