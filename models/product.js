@@ -51,6 +51,7 @@ export async function createProductDB(data, userId) {
 }
 
 export async function updateProductDB(data, userId) {
+  try {
   const { unique_id } = data;
 
   // dynamic update
@@ -82,7 +83,6 @@ export async function updateProductDB(data, userId) {
   values.push(userId);
   values.push(unique_id);
 
-  try {
     const [res] = await mysql.execute(
       `UPDATE products SET ${fields.join(", ")}, updated_by=?, updated_at=NOW() WHERE unique_id=?`,
       values
@@ -94,6 +94,9 @@ export async function updateProductDB(data, userId) {
 
     return { status: true, message: "Product updated", data: [] };
   } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") {
+      return { status: false, message: "SKU already exists", data: [] };
+    }
     console.log("error:", error)
         return {
             status: false,
@@ -165,7 +168,7 @@ export async function deleteProductDB(unique_id) {
 
 // models/product.js (append)
 
-export async function countProductsDB({ q, categoryId }) {
+export async function countProductsDB({ q, categoryId, min_price, max_price, is_active }) {
   const conditions = [];
   const params = [];
 
@@ -176,6 +179,21 @@ export async function countProductsDB({ q, categoryId }) {
   if (categoryId) {
     conditions.push(`p.category_id = ?`);
     params.push(categoryId);
+  }
+
+  if (min_price !== undefined && min_price !== null) {
+    conditions.push(`p.price >= ?`);
+    params.push(min_price);
+  }
+
+  if (max_price !== undefined && max_price !== null) {
+    conditions.push(`p.price <= ?`);
+    params.push(max_price);
+  }
+
+  if (is_active !== undefined && is_active !== null) {
+    conditions.push(`p.is_active = ?`);
+    params.push(is_active);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -196,12 +214,12 @@ export async function countProductsDB({ q, categoryId }) {
   }
 }
 
-export async function listProductsDB({ q, categoryId, limit, offset, sortByPrice }) {
+export async function listProductsDB({ q, categoryId, min_price, max_price, is_active, limit, offset, sortByPrice }) {
   let sql = `
     SELECT p.*, c.name AS category_name
     FROM products p
     INNER JOIN categories c ON p.category_id = c.id
-    WHERE p.is_active = 1
+    WHERE 1=1
   `;
 
   const params = [];
@@ -216,7 +234,21 @@ export async function listProductsDB({ q, categoryId, limit, offset, sortByPrice
     params.push(categoryId);
   }
 
-  // Sorting
+  if (min_price !== undefined && min_price !== null) {
+    sql += ` AND p.price >= ? `;
+    params.push(min_price);
+  }
+
+  if (max_price !== undefined && max_price !== null) {
+    sql += ` AND p.price <= ? `;
+    params.push(max_price);
+  }
+
+  if (is_active !== undefined && is_active !== null) {
+    sql += ` AND p.is_active = ? `;
+    params.push(is_active);
+  }
+
   if (sortByPrice === "asc") {
     sql += ` ORDER BY p.price ASC `;
   } else if (sortByPrice === "desc") {
@@ -225,9 +257,7 @@ export async function listProductsDB({ q, categoryId, limit, offset, sortByPrice
     sql += ` ORDER BY p.id DESC `;
   }
 
-  // IMPORTANT — always at end
-  // Validate and inject numeric LIMIT/OFFSET directly (some MySQL setups
-  // reject using placeholders for LIMIT/OFFSET in prepared statements)
+  
   const lim = Number(limit) || 20;
   const off = Number(offset) || 0;
   sql += ` LIMIT ${lim} OFFSET ${off}`;
