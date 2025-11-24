@@ -127,7 +127,6 @@ function formatNumber(n) {
   return Number(n).toFixed(2);
 }
 
-// Backwards-compatible aliases and bulk upload helpers expected by controllers
 export const productListService = listProductsService;
 
 export async function startBulkUploadService(req) {

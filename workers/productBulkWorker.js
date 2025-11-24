@@ -16,7 +16,6 @@ export default async function productBulkWorker({ jobId }) {
   let processed = 0;
   let failed = 0;
 
-  // Mark as processing
   await updateJobStatusDB({
     jobId,
     total_rows: 0,
@@ -27,7 +26,6 @@ export default async function productBulkWorker({ jobId }) {
 
   const filePath = jobData.file_path;
 
-  // Stream and process rows as they are parsed to avoid buffering large files
   const parser = fs.createReadStream(filePath).pipe(csv());
 
   try {
@@ -46,7 +44,6 @@ export default async function productBulkWorker({ jobId }) {
         failed++;
       }
 
-      // Periodically update progress to the DB (every 50 rows)
       if ((processed + failed) % 50 === 0) {
         await updateJobStatusDB({
           jobId,
@@ -66,7 +63,6 @@ export default async function productBulkWorker({ jobId }) {
       status: "completed"
     });
   } catch (err) {
-    // mark job as failed and record current progress
     try {
       await updateJobStatusDB({
         jobId,

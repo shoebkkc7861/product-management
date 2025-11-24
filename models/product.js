@@ -54,7 +54,6 @@ export async function updateProductDB(data, userId) {
   try {
   const { unique_id } = data;
 
-  // dynamic update
   const fields = [];
   const values = [];
 
@@ -166,7 +165,6 @@ export async function deleteProductDB(unique_id) {
 
 
 
-// models/product.js (append)
 
 export async function countProductsDB({ q, categoryId, min_price, max_price, is_active }) {
   const conditions = [];

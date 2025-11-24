@@ -48,18 +48,15 @@ export async function bulkUploadStatusController(req, res) {
 
 export async function requestProductReportController(req, res) {
   try {
-    // Accept either `body.filters` or plain body with filter keys.
     // body: { format: "csv", filters: { category_id: 3, min_price: 100, max_price: 50000, q: "term", is_active: 1 } }
     const { format = "csv" } = req.body || {};
     const rawFilters = (req.body && req.body.filters && typeof req.body.filters === 'object') ? req.body.filters : req.body || {};
 
-    // normalize filter inputs
     const filters = {};
     filters.q = rawFilters.q ?? rawFilters.search ?? null;
     filters.categoryId = rawFilters.category_id ?? rawFilters.categoryId ?? null;
-    filters.min_price = rawFilters.min_price !== undefined ? Number(rawFilters.min_price) : 0; // default 0 when not provided
-    filters.max_price = rawFilters.max_price !== undefined ? Number(rawFilters.max_price) : null; // if null, don't apply max
-    // is_active: if provided (0 or 1) filter by it, otherwise null means show both
+    filters.min_price = rawFilters.min_price !== undefined ? Number(rawFilters.min_price) : 0; 
+    filters.max_price = rawFilters.max_price !== undefined ? Number(rawFilters.max_price) : null; 
     if (rawFilters.is_active !== undefined && rawFilters.is_active !== null && rawFilters.is_active !== '') {
       const v = rawFilters.is_active;
       filters.is_active = (v === 1 || v === '1' || v === true) ? 1 : 0;
@@ -67,11 +64,10 @@ export async function requestProductReportController(req, res) {
       filters.is_active = null;
     }
 
-    if (!["csv"].includes(format)) { // only csv for now
+    if (!["csv"].includes(format)) { 
       return res.status(400).json({ status: false, message: "Unsupported format. Only 'csv' allowed." });
     }
 
-    // user id from auth
     const userId = req.user && req.user.id ? req.user.id : null;
 
     const result = await requestProductReportService({ userId, filters, format });
