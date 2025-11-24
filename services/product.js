@@ -8,6 +8,9 @@ import { v4 as uuidv4 } from "uuid";
 export async function createProductService(req) {
   try {
     req.body.unique_id = uuidv4();
+    if (!req.body.sku && req.body.product_name) {
+      req.body.sku = String(req.body.product_name).toLowerCase().trim().replace(/\s+/g, "-");
+    }
     return await createProductDB(req.body, req.user.id);
   } catch (err) {
     console.log("error:", err);
@@ -29,7 +32,6 @@ export async function listProductsService(req) {
     const pagination = {
       limit: Number(limit),
       offset: (Number(page) - 1) * Number(limit),
-      // map to listProductsDB expected param
       sortByPrice: (sort === "desc") ? "desc" : (sort === "asc" ? "asc" : null),
       search,
     };
@@ -68,10 +70,11 @@ export async function requestProductReportService({ userId = null, filters = {},
   if (format !== "csv") return { status: false, message: "Unsupported format" };
 
   const normalized = {
-    q: filters.q || filters.search || null,
-    categoryId: filters.category_id || filters.categoryId || null,
-    min_price: filters.min_price || null,
-    max_price: filters.max_price || null,
+    q: filters.q ?? null,
+    categoryId: filters.categoryId ?? null,
+    min_price: (filters.min_price !== undefined && filters.min_price !== null) ? Number(filters.min_price) : null,
+    max_price: (filters.max_price !== undefined && filters.max_price !== null) ? Number(filters.max_price) : null,
+    is_active: (filters.is_active !== undefined && filters.is_active !== null) ? (filters.is_active === 1 ? 1 : 0) : null
   };
 
   const reportsDir = path.join(process.cwd(), "reports");
@@ -84,12 +87,12 @@ export async function requestProductReportService({ userId = null, filters = {},
     if (!total) return { status: false, message: "No data", total_rows: 0 };
 
     const stream = fs.createWriteStream(filePath, { encoding: "utf8" });
-    const headers = ["id", "product_name", "sku", "price", "stock", "category_name"];
+    const headers = ["id", "product_name", "sku", "price", "stock", "category_name", "is_active"];
     stream.write(headers.join(",") + "\n");
 
     const pageSize = 1000;
     for (let off = 0; off < total; off += pageSize) {
-      const rows = await listProductsDB({ q: normalized.q, categoryId: normalized.categoryId, limit: pageSize, offset: off, sortByPrice: null });
+      const rows = await listProductsDB({ q: normalized.q, categoryId: normalized.categoryId, min_price: normalized.min_price, max_price: normalized.max_price, is_active: normalized.is_active, limit: pageSize, offset: off, sortByPrice: null });
       for (const r of rows) {
         const line = [
           r.id,
@@ -98,6 +101,7 @@ export async function requestProductReportService({ userId = null, filters = {},
           formatNumber(r.price),
           r.stock || 0,
           escapeCsv(r.category_name),
+          r.is_active || 0,
         ].join(",");
         stream.write(line + "\n");
       }
