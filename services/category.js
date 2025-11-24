@@ -10,11 +10,11 @@ export async function createCategoryService(req) {
     return await createCategoryDB(req.body, req.user.id);
   } catch (error) {
     console.log("error:", error)
-        return {
-            status: false,
-            message: "Somthing went wrong",
-            data: []
-        };
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
   }
 }
 
@@ -22,15 +22,20 @@ export async function updateCategoryService(req) {
   try {
     if (!req.body.uuid) return { status: false, message: "UUID required" };
 
-    await updateCategoryDB(req.body, req.user.id);
-    return { status: true, message: "Category updated" };
+    let data = await updateCategoryDB(req.body, req.user.id);
+    if (data.affectedRows === 0) {
+      return { status: false, message: "Category not found", data: [] };
+    }
+
+    return { status: true, message: "Category updated", data: [data] };
+
   } catch (error) {
     console.log("error:", error)
-        return {
-            status: false,
-            message: "Somthing went wrong",
-            data: []
-        };
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
   }
 }
 
@@ -39,11 +44,11 @@ export async function listCategoriesService() {
     return await listCategoriesDB();
   } catch (error) {
     console.log("error:", error)
-        return {
-            status: false,
-            message: "Somthing went wrong",
-            data: []
-        };
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
   }
 }
 
@@ -54,11 +59,11 @@ export async function getCategoryService(uuid) {
     return data;
   } catch (error) {
     console.log("error:", error)
-        return {
-            status: false,
-            message: "Somthing went wrong",
-            data: []
-        };
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
   }
 }
 
@@ -67,17 +72,21 @@ export async function deleteCategoryService(req) {
     if (!req.body.uuid) return { status: false, message: "UUID required" };
 
     const res = await deleteCategoryDB(req.body.uuid);
+    if (res.affectedRows === 0) {
+      return { status: false, message: "Category not found", data: [] };
+    }
 
     return {
       status: true,
-      deleted: res.affectedRows
+      deleted: res.affectedRows,
+      message: "Category deleted"
     };
   } catch (error) {
     console.log("error:", error)
-        return {
-            status: false,
-            message: "Somthing went wrong",
-            data: []
-        };
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
   }
 }
