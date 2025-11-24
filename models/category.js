@@ -51,15 +51,17 @@ export async function updateCategoryDB({ uuid, name, description }, userId) {
       `UPDATE categories SET ${fields.join(", ")} WHERE uuid=?`,
       values
     );
-
     return res;
   } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") {
+      return { status: false, message: "Slug already exists", data: [] };
+    }
     console.log("error:", error)
-        return {
-            status: false,
-            message: "Somthing went wrong",
-            data: []
-        };
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
   }
 }
 
@@ -70,11 +72,11 @@ export async function listCategoriesDB() {
     return rows;
   } catch (error) {
     console.log("error:", error)
-        return {
-            status: false,
-            message: "Somthing went wrong",
-            data: []
-        };
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
   }
 }
 
@@ -85,11 +87,11 @@ export async function getCategoryDB(uuid) {
     return rows[0];
   } catch (error) {
     console.log("error:", error)
-        return {
-            status: false,
-            message: "Somthing went wrong",
-            data: []
-        };
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
   }
 }
 
@@ -99,11 +101,11 @@ export async function getCategoryBySlug(slug) {
     return rows[0];
   } catch (error) {
     console.log("error:", error)
-        return {
-            status: false,
-            message: "Somthing went wrong",
-            data: []
-        };
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
   }
 }
 
@@ -113,14 +115,15 @@ export async function deleteCategoryDB(uuid) {
       `UPDATE categories SET is_active = 0 WHERE uuid = ?`,
       [uuid]
     );
+    // console.log("res:::", res);
     return res;
   } catch (error) {
     console.log("error:", error)
-        return {
-            status: false,
-            message: "Somthing went wrong",
-            data: []
-        };
+    return {
+      status: false,
+      message: "Somthing went wrong",
+      data: []
+    };
   }
 }
 
