@@ -47,11 +47,11 @@ export const addUser = async (userData) => {
   }
 };
 
-export const getUserByEmail = async (emailOrPhone) => {
+export const getUserByEmail = async (email="",phone = "") => {
   try {
     const [rows] = await mysql.execute(
       `SELECT * FROM users WHERE email = ? or phone = ?`,
-      [emailOrPhone, emailOrPhone]
+      [email, phone]
     );
 
     return { status: true, message: `${(rows.length > 0) ? "data found" : "data not found"}`, data: rows };
